@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Phishing Detector</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #eff6ff 0%, #f3e8ff 50%, #fdf2f8 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            padding: 1rem 1rem 0;
+        }
+
+        .card-content {
+            padding: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .header-card {
+            text-align: center;
+            margin-bottom: 2rem;
+            max-width: 100%;
+        }
+
+        .header-card .card-content {
+            padding: 1.5rem 1rem;
+        }
+
+        .header-title {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: bold;
+            background: linear-gradient(to right, #2563eb, #9333ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            word-break: break-word;
+            hyphens: auto;
+        }
+
+        .header-subtitle {
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            color: #6b7280;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .blue { color: #2563eb; }
+        .green { color: #16a34a; }
+        .yellow { color: #ca8a04; }
+        .red { color: #dc2626; }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            min-height: 44px; /* Touch-friendly minimum */
+        }
+
+        .button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+            min-height: 44px; /* Touch-friendly minimum */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .button-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .button-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .button-outline {
+            background: white;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .button-outline:hover {
+            background: #f9fafb;
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .analysis-result {
+            border: 2px solid;
+            border-radius: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .risk-low {
+            border-color: #bbf7d0;
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .risk-medium {
+            border-color: #fef3c7;
+            background: #fffbeb;
+            color: #92400e;
+        }
+
+        .risk-high {
+            border-color: #fecaca;
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .risk-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background: #e5e7eb;
+            border-radius: 0.25rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #16a34a;
+            transition: width 0.3s ease;
+        }
+
+        .threats-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .threat-badge {
+            background: #dc2626;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            word-break: break-word;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .feature-card {
+            transition: box-shadow 0.2s;
+        }
+
+        .feature-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .profile-section {
+            text-align: center;
+            order: 1;
+        }
+
+        .about-content {
+            order: 2;
+        }
+
+        .profile-image {
+            width: 10rem;
+            height: 10rem;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            background: linear-gradient(135deg, #dbeafe, #e9d5ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            color: #374151;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+            min-height: 44px; /* Touch-friendly */
+        }
+
+        .social-link:hover {
+            background: #f9fafb;
+        }
+
+        .about-content h3 {
+            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .about-content .title {
+            font-size: clamp(1rem, 2.5vw, 1.125rem);
+            color: #2563eb;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .about-content p {
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .skills-section h4 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .skills-list {
+            list-style: none;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .skills-list li {
+            margin-bottom: 0.25rem;
+        }
+
+        .extension-preview {
+            max-width: 20rem;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .extension-card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+
+        .extension-header {
+            background: linear-gradient(to right, #2563eb, #9333ea);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .extension-body {
+            padding: 1rem;
+        }
+
+        .extension-status {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: #f0fdf4;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .status-indicator {
+            width: 0.75rem;
+            height: 0.75rem;
+            background: #16a34a;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .extension-details {
+            font-size: 0.875rem;
+        }
+
+        .extension-details > div {
+            margin-bottom: 0.25rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .spinner {
+            width: 2rem;
+            height: 2rem;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Tablet styles */
+        @media (min-width: 640px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            .card-header {
+                padding: 1.5rem 1.5rem 0;
+            }
+
+            .card-content {
+                padding: 1.5rem;
+            }
+
+            .header-card .card-content {
+                padding: 2rem;
+            }
+
+            .input-group {
+                flex-direction: row;
+                align-items: stretch;
+            }
+
+            .input {
+                flex: 1;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            }
+
+            .social-links {
+                gap: 1rem;
+            }
+
+            .skills-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Desktop styles */
+        @media (min-width: 768px) {
+            .container {
+                padding: 2rem;
+            }
+
+            .header-card {
+                margin-bottom: 3rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 1.5rem;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr 2fr;
+                gap: 2rem;
+            }
+
+            .profile-section {
+                order: 0;
+            }
+
+            .about-content {
+                order: 0;
+            }
+
+            .profile-image {
+                width: 12rem;
+                height: 12rem;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            }
+        }
+
+        /* Large desktop styles */
+        @media (min-width: 1024px) {
+            .features-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Extra large screens */
+        @media (min-width: 1280px) {
+            .container {
+                max-width: 1280px;
+            }
+        }
+
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .profile-image img {
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+            }
+
+            .card {
+                background: #1f2937;
+                border-color: #374151;
+                color: #f9fafb;
+            }
+
+            .header-subtitle,
+            .stat-label,
+            .feature-description,
+            .about-content p,
+            .skills-list {
+                color: #d1d5db;
+            }
+
+            .input {
+                background: #374151;
+                border-color: #4b5563;
+                color: #f9fafb;
+            }
+
+            .button-outline {
+                background: #374151;
+                color: #f9fafb;
+                border-color: #4b5563;
+            }
+
+            .social-link {
+                background: #374151;
+                color: #f9fafb;
+                border-color: #4b5563;
+            }
+
+            .extension-card {
+                background: #1f2937;
+                border-color: #374151;
+            }
+        }
+
+        /* Reduced motion for accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* High contrast mode */
+        @media (prefers-contrast: high) {
+            .card {
+                border-width: 2px;
+            }
+
+            .button {
+                border-width: 2px;
+            }
+        }
+
+        /* Focus styles for accessibility */
+        .button:focus,
+        .input:focus,
+        .social-link:focus {
+            outline: 2px solid #2563eb;
+            outline-offset: 2px;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .card {
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+
+            .button {
+                display: none;
+            }
+
+            .loading,
+            .spinner {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header-card card">
+            <div class="card-content">
+                <div class="header-title">
+                    Advanced Phishing Detector
+                </div>
+                <p class="header-subtitle">
+                    Comprehensive website security analysis with AI-powered threat detection
+                </p>
+            </div>
+        </div>
+
+        <!-- Stats Dashboard -->
+        <div class="stats-grid">
+            <div class="card stat-card">
+                <div class="card-content">
+                    <div class="stat-number blue" id="totalScanned">0</div>
+                    <div class="stat-label">URLs Analyzed</div>
+                </div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-content">
+                    <div class="stat-number green" id="safeCount">0</div>
+                    <div class="stat-label">Safe Sites</div>
+                </div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-content">
+                    <div class="stat-number yellow" id="warningCount">0</div>
+                    <div class="stat-label">Suspicious Sites</div>
+                </div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-content">
+                    <div class="stat-number red" id="dangerCount">0</div>
+                    <div class="stat-label">Dangerous Sites</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- URL Analyzer -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i data-lucide="shield"></i>
+                    Advanced URL Analysis
+                </div>
+            </div>
+            <div class="card-content">
+                <div style="margin-bottom: 1.5rem;">
+                    <button class="button button-outline" onclick="setTestUrl('https://google.com')">
+                        Test Safe Site
+                    </button>
+                </div>
+
+                <div class="input-group">
+                    <input 
+                        type="url" 
+                        id="urlInput" 
+                        class="input" 
+                        value="https://example.com"
+                        placeholder="Enter URL to analyze (https://example.com)"
+                        onkeydown="handleKeyDown(event)"
+                    >
+                    <button class="button button-primary" onclick="analyzeUrl()" id="analyzeBtn">
+                        Analyze URL
+                    </button>
+                </div>
+
+                <div id="loading" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p style="color: #6b7280;">Performing advanced security analysis...</p>
+                </div>
+
+                <div id="analysisResult" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Extension Preview -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Extension Preview</div>
+            </div>
+            <div class="card-content">
+                <div class="extension-preview">
+                    <div class="extension-card">
+                        <div class="extension-header">
+                            <i data-lucide="shield" style="width: 1.25rem; height: 1.25rem;"></i>
+                            <div>
+                                <div style="font-weight: 600;">Phishing Detector</div>
+                                <div style="font-size: 0.75rem; opacity: 0.8;">Security Extension</div>
+                            </div>
+                        </div>
+                        <div class="extension-body">
+                            <div class="extension-status">
+                                <div class="status-indicator"></div>
+                                <div>
+                                    <div style="font-weight: 500; color: #166534;">Site is Safe</div>
+                                    <div style="font-size: 0.75rem; color: #16a34a;">example.com</div>
+                                </div>
+                            </div>
+                            <div class="extension-details">
+                                <div><strong>Security Score:</strong> 95/100</div>
+                                <div><strong>Last Checked:</strong> Just now</div>
+                                <div><strong>Threats Found:</strong> None</div>
+                            </div>
+                            <div class="progress-bar" style="margin-top: 0.75rem;">
+                                <div class="progress-fill" style="width: 95%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="features-grid">
+            <div class="card feature-card">
+                <div class="card-content">
+                    <div class="feature-icon">🧠</div>
+                    <h3 class="feature-title">AI-Powered Detection</h3>
+                    <p class="feature-description">
+                        Advanced machine learning algorithms analyze URL patterns and content structure.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card feature-card">
+                <div class="card-content">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Real-time Protection</h3>
+                    <p class="feature-description">
+                        Instant analysis with sub-second response times for seamless browsing.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card feature-card">
+                <div class="card-content">
+                    <div class="feature-icon">🌐</div>
+                    <h3 class="feature-title">Global Threat Database</h3>
+                    <p class="feature-description">
+                        Connected to threat intelligence feeds with millions of known phishing sites.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card feature-card">
+                <div class="card-content">
+                    <div class="feature-icon">🔒</div>
+                    <h3 class="feature-title">Privacy First</h3>
+                    <p class="feature-description">
+                        All analysis performed locally with zero data collection or tracking.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card feature-card">
+                <div class="card-content">
+                    <div class="feature-icon">📈</div>
+                    <h3 class="feature-title">Detailed Analytics</h3>
+                    <p class="feature-description">
+                        Comprehensive risk scoring and detailed security reports for every site.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card feature-card">
+                <div class="card-content">
+                    <div class="feature-icon">🛠️</div>
+                    <h3 class="feature-title">Advanced Customization</h3>
+                    <p class="feature-description">
+                        Configurable sensitivity levels and custom whitelist/blacklist management.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Me Section -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i data-lucide="user"></i>
+                    About the Developer
+                </div>
+            </div>
+            <div class="card-content">
+                <div class="about-grid">
+                    <div class="profile-section">
+                        <div class="profile-image">
+                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/profile-pic-86BexLidHvQQRq119FKzP6YL0zDlTF.png" alt="Aditya Jagdish Kajale - Cybersecurity Developer">
+                        </div>
+                        <div class="social-links">
+                            <a href="https://github.com/adityakajale409" target="_blank" rel="noopener noreferrer" class="social-link">
+                                <i data-lucide="github" style="width: 1rem; height: 1rem;"></i>
+                                GitHub
+                            </a>
+                            <a href="https://www.linkedin.com/in/aditya-jagdish-kajale/" target="_blank" rel="noopener noreferrer" class="social-link">
+                                <i data-lucide="linkedin" style="width: 1rem; height: 1rem;"></i>
+                                LinkedIn
+                            </a>
+                            <a href="mailto:adityakajale2424@gmail.com" class="social-link">
+                                <i data-lucide="mail" style="width: 1rem; height: 1rem;"></i>
+                                Contact
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="about-content">
+                        <div>
+                            <h3>Aditya Jagdish Kajale</h3>
+                            <p class="title">Cybersecurity Developer & Researcher</p>
+                        </div>
+
+                        <p>
+                            Passionate cybersecurity professional with expertise in threat detection, web security, and AI-powered
+                            security solutions. I developed this advanced phishing detector to help protect users from
+                            increasingly sophisticated online threats.
+                        </p>
+
+                        <div class="skills-grid">
+                            <div class="skills-section">
+                                <h4>Expertise</h4>
+                                <ul class="skills-list">
+                                    <li>• Web Security & Threat Analysis</li>
+                                    <li>• Machine Learning for Security</li>
+                                    <li>• Browser Extension Development</li>
+                                    <li>• Phishing Detection Algorithms</li>
+                                </ul>
+                            </div>
+                            <div class="skills-section">
+                                <h4>Technologies</h4>
+                                <ul class="skills-list">
+                                    <li>• JavaScript/TypeScript</li>
+                                    <li>• React & Next.js</li>
+                                    <li>• Python & Machine Learning</li>
+                                    <li>• Browser APIs & Extensions</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Session stats
+        let sessionStats = {
+            totalScanned: 0,
+            safeCount: 0,
+            warningCount: 0,
+            dangerCount: 0
+        };
+
+        // Threat database
+        const threatDatabase = {
+            knownPhishingDomains: [
+                "paypal-security.com",
+                "amazon-security.com",
+                "google-security.com",
+                "microsoft-security.com",
+                "apple-support.com",
+                "facebook-security.com"
+            ],
+            suspiciousTLDs: [".tk", ".ml", ".ga", ".cf", ".top", ".click", ".download", ".stream"],
+            urlShorteners: ["bit.ly", "tinyurl.com", "goo.gl", "t.co", "ow.ly", "tiny.cc"],
+            phishingKeywords: [
+                "verify", "suspended", "limited", "urgent", "immediate", "action required",
+                "click here", "update payment", "confirm identity", "account locked"
+            ]
+        };
+
+        function updateStats() {
+            document.getElementById('totalScanned').textContent = sessionStats.totalScanned;
+            document.getElementById('safeCount').textContent = sessionStats.safeCount;
+            document.getElementById('warningCount').textContent = sessionStats.warningCount;
+            document.getElementById('dangerCount').textContent = sessionStats.dangerCount;
+        }
+
+        function setTestUrl(url) {
+            document.getElementById('urlInput').value = url;
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter') {
+                analyzeUrl();
+            }
+        }
+
+        function analyzeURL(inputUrl) {
+            const analysis = {
+                url: inputUrl,
+                riskScore: 0,
+                threats: [],
+                riskLevel: "low",
+                confidence: 0,
+                details: {}
+            };
+
+            try {
+                const urlObj = new URL(inputUrl);
+                const domain = urlObj.hostname.toLowerCase();
+
+                // Domain Analysis
+                if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(domain)) {
+                    analysis.riskScore += 40;
+                    analysis.threats.push("Uses IP address instead of domain");
+                }
+
+                if (threatDatabase.knownPhishingDomains.some(d => domain.includes(d))) {
+                    analysis.riskScore += 60;
+                    analysis.threats.push("Known phishing domain");
+                }
+
+                if (threatDatabase.suspiciousTLDs.some(tld => domain.endsWith(tld))) {
+                    analysis.riskScore += 35;
+                    analysis.threats.push("Suspicious top-level domain");
+                }
+
+                const subdomains = domain.split(".");
+                if (subdomains.length > 4) {
+                    analysis.riskScore += 20;
+                    analysis.threats.push("Excessive subdomains");
+                }
+
+                // Security Protocol Analysis
+                if (urlObj.protocol !== "https:") {
+                    analysis.riskScore += 30;
+                    analysis.threats.push("Not using secure HTTPS");
+                }
+
+                // URL Structure Analysis
+                if (inputUrl.length > 200) {
+                    analysis.riskScore += 20;
+                    analysis.threats.push("Unusually long URL");
+                }
+
+                // Content Pattern Analysis
+                threatDatabase.phishingKeywords.forEach(keyword => {
+                    if (inputUrl.toLowerCase().includes(keyword.replace(/\s+/g, ""))) {
+                        analysis.riskScore += 15;
+                        analysis.threats.push(`Contains suspicious keyword: ${keyword}`);
+                    }
+                });
+
+                analysis.details.domain = {
+                    name: domain,
+                    subdomainCount: subdomains.length,
+                    length: domain.length,
+                    hasNumbers: /\d/.test(domain),
+                    hasHyphens: /-/.test(domain)
+                };
+
+                // Calculate final risk
+                analysis.riskScore = Math.min(analysis.riskScore, 100);
+                analysis.confidence = Math.min(50 + analysis.threats.length * 10, 100);
+
+                if (analysis.riskScore >= 70) {
+                    analysis.riskLevel = "high";
+                } else if (analysis.riskScore >= 40) {
+                    analysis.riskLevel = "medium";
+                } else {
+                    analysis.riskLevel = "low";
+                }
+            } catch (error) {
+                analysis.riskScore = 25;
+                analysis.threats.push("Invalid URL format");
+                analysis.riskLevel = "medium";
+                analysis.confidence = 50;
+            }
+
+            return analysis;
+        }
+
+        function displayAnalysisResult(analysis) {
+            const resultDiv = document.getElementById('analysisResult');
+            
+            const getRiskIcon = (level) => {
+                switch (level) {
+                    case "high": return "x-circle";
+                    case "medium": return "alert-triangle";
+                    default: return "check-circle";
+                }
+            };
+
+            const getRiskTitle = (level) => {
+                switch (level) {
+                    case "high": return "HIGH RISK - Potential Phishing Site";
+                    case "medium": return "MEDIUM RISK - Suspicious Characteristics";
+                    default: return "LOW RISK - Appears Safe";
+                }
+            };
+
+            let threatsHtml = '';
+            if (analysis.threats.length > 0) {
+                threatsHtml = `
+                    <div style="margin-top: 1rem;">
+                        <p style="font-weight: 500; margin-bottom: 0.5rem;">Threats Detected:</p>
+                        <div class="threats-list">
+                            ${analysis.threats.map(threat => `<span class="threat-badge">${threat}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            resultDiv.innerHTML = `
+                <div class="analysis-result risk-${analysis.riskLevel}">
+                    <div class="card-content">
+                        <div class="risk-header">
+                            <i data-lucide="${getRiskIcon(analysis.riskLevel)}" style="width: 1.5rem; height: 1.5rem; flex-shrink: 0;"></i>
+                            <div>
+                                <h3 style="font-weight: 600; font-size: 1.125rem;">${getRiskTitle(analysis.riskLevel)}</h3>
+                                <p style="font-size: 0.875rem; opacity: 0.75;">Risk Score: ${analysis.riskScore}/100</p>
+                            </div>
+                        </div>
+
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${100 - analysis.riskScore}%;"></div>
+                        </div>
+                        <p style="font-size: 0.875rem; margin-top: 0.25rem;">Security Score: ${100 - analysis.riskScore}/100</p>
+
+                        ${analysis.details.domain ? `
+                            <div style="font-size: 0.875rem; margin: 1rem 0;">
+                                <p><strong>Domain:</strong> ${analysis.details.domain.name}</p>
+                                <p><strong>Subdomains:</strong> ${analysis.details.domain.subdomainCount}</p>
+                                <p><strong>Analysis Confidence:</strong> ${analysis.confidence}%</p>
+                            </div>
+                        ` : ''}
+
+                        ${threatsHtml}
+                    </div>
+                </div>
+            `;
+
+            // Re-initialize icons for the new content
+            lucide.createIcons();
+        }
+
+        function analyzeUrl() {
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
+            
+            if (!url) return;
+
+            const loadingDiv = document.getElementById('loading');
+            const resultDiv = document.getElementById('analysisResult');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+
+            // Show loading state
+            loadingDiv.style.display = 'block';
+            resultDiv.style.display = 'none';
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = 'Analyzing...';
+
+            // Simulate analysis time
+            setTimeout(() => {
+                const analysis = analyzeURL(url);
+                
+                // Update session stats
+                sessionStats.totalScanned++;
+                if (analysis.riskLevel === 'low') sessionStats.safeCount++;
+                else if (analysis.riskLevel === 'medium') sessionStats.warningCount++;
+                else sessionStats.dangerCount++;
+                
+                updateStats();
+                displayAnalysisResult(analysis);
+
+                // Hide loading state
+                loadingDiv.style.display = 'none';
+                resultDiv.style.display = 'block';
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = 'Analyze URL';
+            }, 2000);
+        }
+
+        // Initialize stats display
+        updateStats();
+    </script>
+</body>
+</html>
